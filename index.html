@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Meu Dia a Dia com TDAH</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+<style>
+body{font-family:'Poppins',sans-serif;margin:0;color:white;background:linear-gradient(180deg,#1f1f3a,#24245c);}
+.hero{background:linear-gradient(120deg,#5f2c82,#49a09d);padding:30px 0 40px;text-align:center;}
+.hero-img{width:90%;max-width:1100px;border-radius:24px;filter:brightness(.85);}
+.hero button{margin:6px;padding:8px 14px;border:none;border-radius:12px;cursor:pointer;}
+.termometro{display:inline-flex;gap:6px;padding:8px 16px;border-radius:18px;background:rgba(255,255,255,.25);}
+.termometro.verde{background:rgba(46,204,113,.8);}
+.termometro.amarelo{background:rgba(241,196,15,.8);}
+.termometro.vermelho{background:rgba(231,76,60,.8);}
+#fraseDia{margin-top:6px;font-size:14px;opacity:.9}
+.menu{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;padding:18px;}
+.menu button{background:white;color:#333;border:none;padding:8px 14px;border-radius:12px;}
+.section{display:none;max-width:760px;margin:30px auto;border-radius:22px;padding:24px;color:#000;}
+.box{background:#fff;border-radius:12px;padding:10px;margin:6px 0;display:flex;gap:6px;}
+.box input{flex:1;border:none;outline:none;}
+.box select{border:none;}
+.conq{background:#ffe29f;} .frus{background:#ffb3ba;} .novo{background:#ffd6a5;}
+.naoterm{background:#f9c0c0;} .fina{background:#c7ceea;} .medi{background:#ff9cee;}
+.fami{background:#b2f7ef;} .trab{background:#f1f7b5;} .regi{background:#d5c6ff;}
+.save{display:block;margin:30px auto;background:#00c6ff;color:white;border:none;padding:12px 22px;border-radius:14px;}
+#historico,#graficoHumor{display:none;text-align:center;padding:20px;}
+#overlayFoco{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center;}
+footer{text-align:center;padding:20px;font-size:12px;color:rgba(255,255,255,.6);}
+</style>
+</head>
+<body>
+
+<div class="hero">
+<img src="img/cabecalho.png" class="hero-img">
+<h1>MEU DIA A DIA COM TDAH</h1>
+<p>Minha central de organização emocional 🌱</p>
+<button onclick="abrirHistorico()">📅 Histórico</button>
+<button onclick="abrirGrafico()">📊 Humor da Semana</button>
+<div id="termometro" class="termometro"><span id="emojiDia">🟡</span><span id="statusDia">Dia neutro</span></div>
+<div id="fraseDia"></div>
+<button onclick="iniciarFoco()">🔕 Modo Foco (25 min)</button>
+</div>
+
+<div class="menu">
+<button onclick="go('conq')">🏆 Conquistas</button>
+<button onclick="go('frus')">😤 Frustrações</button>
+<button onclick="go('novo')">🚀 Projetos Novos</button>
+<button onclick="go('naoterm')">🧩 Não Terminados</button>
+<button onclick="go('fina')">✅ Finalizados</button>
+<button onclick="go('medi')">💊 Medicações</button>
+<button onclick="go('fami')">👨‍👩‍👧 Família</button>
+<button onclick="go('trab')">💼 Trabalho</button>
+<button onclick="go('regi')">📝 Registro Diário</button>
+</div>
+
+<div id="formulario"></div>
+<button class="save" onclick="salvar()">Salvar este dia</button>
+
+<div id="historico">
+<h2>📅 Histórico</h2>
+<input type="date" id="dataHist" onchange="verDia()"><br><br>
+<div id="resultado"></div><br>
+<button onclick="voltar()">Voltar</button>
+</div>
+
+<div id="graficoHumor">
+<h2>📊 Humor da Semana</h2>
+<canvas id="canvasHumor" width="420" height="240"></canvas><br><br>
+<button onclick="fecharGrafico()">Voltar</button>
+</div>
+
+<div id="overlayFoco"><h1 id="timer">25:00</h1><button onclick="encerrarFoco()">Encerrar</button></div>
+
+<footer>© 2026 – Meu Dia a Dia com TDAH – Criado por Alisson Carvalho</footer>
+
+<script>
+const frases=[
+ "Hoje não precisa ser perfeito.","Um passo pequeno ainda é um passo.",
+ "Respira. Você está fazendo o melhor que pode.",
+ "Seu ritmo é válido.","Descansar também é construir."
+];
+
+const categorias=[
+ ["conq","🏆 Conquistas"],["frus","😤 Frustrações"],["novo","🚀 Projetos Novos"],
+ ["naoterm","🧩 Não Terminados"],["fina","✅ Finalizados"],
+ ["medi","💊 Medicações"],["fami","👨‍👩‍👧 Família"],
+ ["trab","💼 Trabalho"],["regi","📝 Registro Diário"]
+];
+
+const form=document.getElementById("formulario");
+categorias.forEach(c=>{
+ let h=`<div class="section ${c[0]}" id="${c[0]}"><h2>${c[1]}</h2>`;
+ for(let i=0;i<5;i++){
+  h+=`<div class="box">
+        <input placeholder="Digite...">
+        <select><option>🔴</option><option>🟡</option><option>🟢</option></select>
+        <select><option value="">🙂</option><option>😕</option><option>😨</option><option>😢</option><option>😡</option><option>😄</option></select>
+      </div>`;
+ }
+ h+=`</div>`; form.innerHTML+=h;
+});
+
+function go(id){
+ document.querySelectorAll(".section").forEach(s=>s.style.display="none");
+ document.getElementById(id).style.display="block";
+ document.getElementById("historico").style.display="none";
+ document.getElementById("graficoHumor").style.display="none";
+ document.querySelector(".save").style.display="block";
+ document.getElementById("formulario").style.display="block";
+}
+
+let focoInterval;
+function iniciarFoco(){
+ overlayFoco.style.display="flex";
+ let tempo=1500;
+ focoInterval=setInterval(()=>{tempo--;timer.innerText=`${Math.floor(tempo/60)}:${(tempo%60).toString().padStart(2,"0")}`;if(tempo<=0)encerrarFoco();},1000);
+}
+function encerrarFoco(){clearInterval(focoInterval);overlayFoco.style.display="none";timer.innerText="25:00";}
+
+function salvar(){
+ let d=new Date().toISOString().slice(0,10),dados=[];
+ document.querySelectorAll(".section").forEach(sec=>{
+  sec.querySelectorAll(".box").forEach(b=>{
+   if(b.children[0].value){
+    dados.push(sec.id+"|"+b.children[0].value+"|"+b.children[1].value+"|"+(b.children[2].value||"🙂"));
+   }
+  });
+ });
+ localStorage.setItem(d,JSON.stringify(dados));
+ atualizarTermometro(); atualizarFrase();
+ alert("💙 Dia salvo com sucesso!");
+}
+
+function atualizarTermometro(){
+ let hoje=new Date().toISOString().slice(0,10);
+ let dados=JSON.parse(localStorage.getItem(hoje)||"[]");
+ let c={"🔴":0,"🟡":0,"🟢":0};
+ dados.forEach(l=>c[l.split("|")[2]]++);
+ let t=termometro,e=emojiDia,s=statusDia;
+ t.className="termometro";
+ if(c["🟢"]>=c["🟡"]&&c["🟢"]>=c["🔴"]){t.classList.add("verde");e.innerText="🟢";s.innerText="Dia positivo";}
+ else if(c["🟡"]>=c["🔴"]){t.classList.add("amarelo");e.innerText="🟡";s.innerText="Dia neutro";}
+ else{t.classList.add("vermelho");e.innerText="🔴";s.innerText="Dia pesado";}
+}
+
+function atualizarFrase(){fraseDia.innerText="🌤️ "+frases[new Date().getDate()%frases.length];}
+
+function abrirHistorico(){formulario.style.display="none";document.querySelector(".save").style.display="none";historico.style.display="block";}
+function voltar(){historico.style.display="none";graficoHumor.style.display="none";formulario.style.display="block";document.querySelector(".save").style.display="block";}
+function verDia(){
+ let d=dataHist.value,r=JSON.parse(localStorage.getItem(d)||"[]"),h="";
+ r.forEach(l=>{let p=l.split("|");h+=`<p><b>${p[0]}</b>: ${p[1]} ${p[2]} ${p[3]}</p>`});
+ resultado.innerHTML=h||"Nenhum registro neste dia.";
+}
+
+function abrirGrafico(){formulario.style.display="none";document.querySelector(".save").style.display="none";graficoHumor.style.display="block";desenharGrafico();}
+function fecharGrafico(){voltar();}
+function desenharGrafico(){
+ let ctx=canvasHumor.getContext("2d");ctx.clearRect(0,0,420,240);
+ const dias=["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+ let soma=0,cont=0;
+ for(let i=6;i>=0;i--){
+  let d=new Date();d.setDate(d.getDate()-i);
+  let key=d.toISOString().slice(0,10);
+  let data=JSON.parse(localStorage.getItem(key)||"[]");
+  let val=0;data.forEach(l=>{if(l.includes("🟢"))val+=2;if(l.includes("🟡"))val+=1;});
+  soma+=val;if(data.length)cont++;
+  let x=(6-i)*55+20,h=val*10;
+  ctx.fillStyle=val>=6?"#2ecc71":val>=3?"#f1c40f":"#e74c3c";
+  ctx.fillRect(x,200-h,35,h);
+  ctx.fillStyle="#fff";ctx.fillText(dias[d.getDay()],x,225);
+ }
+ ctx.fillText("Média da semana: "+(cont?Math.round(soma/cont):0),10,20);
+}
+setTimeout(()=>{atualizarTermometro();atualizarFrase();},500);
+</script>
+</body>
+</html>
